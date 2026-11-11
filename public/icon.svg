@@ -1,0 +1,65 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <!-- Neomorphic soft background gradient -->
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#f5f8fd" />
+      <stop offset="100%" stop-color="#d4e0ee" />
+    </linearGradient>
+
+    <!-- Metallic rim gradient -->
+    <linearGradient id="rimGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff" />
+      <stop offset="100%" stop-color="#b8c8da" />
+    </linearGradient>
+
+    <!-- Primary Accent Bell gradient -->
+    <linearGradient id="bellGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#38bdf8" />
+      <stop offset="100%" stop-color="#0284c7" />
+    </linearGradient>
+
+    <!-- Outer soft shadows -->
+    <filter id="neuShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="-14" dy="-14" stdDeviation="16" flood-color="#ffffff" flood-opacity="0.9" />
+      <feDropShadow dx="16" dy="16" stdDeviation="20" flood-color="#a3b4c9" flood-opacity="0.6" />
+    </filter>
+
+    <filter id="innerDepth" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="6" dy="8" stdDeviation="8" flood-color="#024e75" flood-opacity="0.35" />
+    </filter>
+  </defs>
+
+  <!-- Background Base with Rounded Corners -->
+  <rect width="512" height="512" rx="112" fill="url(#bgGrad)" />
+
+  <!-- Outer Tactile Soft UI Disc -->
+  <circle cx="256" cy="256" r="180" fill="url(#bgGrad)" filter="url(#neuShadow)" stroke="url(#rimGrad)" stroke-width="4" />
+
+  <!-- Inner Recessed Ring -->
+  <circle cx="256" cy="256" r="145" fill="none" stroke="#b8c8da" stroke-width="2" opacity="0.6" />
+
+  <!-- Left Twin Bell -->
+  <circle cx="178" cy="180" r="30" fill="url(#bellGrad)" filter="url(#innerDepth)" />
+  <circle cx="178" cy="180" r="14" fill="#ffffff" opacity="0.4" />
+
+  <!-- Right Twin Bell -->
+  <circle cx="334" cy="180" r="30" fill="url(#bellGrad)" filter="url(#innerDepth)" />
+  <circle cx="334" cy="180" r="14" fill="#ffffff" opacity="0.4" />
+
+  <!-- Alarm Clock Hammer Mount -->
+  <path d="M 230 180 Q 256 160 282 180" stroke="#0284c7" stroke-width="12" stroke-linecap="round" fill="none" />
+  <circle cx="256" cy="168" r="9" fill="#0ea5e9" />
+
+  <!-- Main Alarm Bell Body -->
+  <path d="M 256 195 C 215 195 195 230 195 285 L 180 325 L 332 325 L 317 285 C 317 230 297 195 256 195 Z" fill="url(#bellGrad)" filter="url(#innerDepth)" />
+
+  <!-- Clapper -->
+  <circle cx="256" cy="336" r="14" fill="#026597" />
+
+  <!-- Inner Checkmark (Routine habit completion) -->
+  <path d="M 232 270 L 249 287 L 285 248" fill="none" stroke="#ffffff" stroke-width="12" stroke-linecap="round" stroke-linejoin="round" />
+
+  <!-- Bottom Alarm Clock Feet -->
+  <line x1="195" y1="365" x2="175" y2="395" stroke="#0284c7" stroke-width="14" stroke-linecap="round" />
+  <line x1="317" y1="365" x2="337" y2="395" stroke="#0284c7" stroke-width="14" stroke-linecap="round" />
+</svg>

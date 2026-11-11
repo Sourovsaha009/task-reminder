@@ -28,6 +28,8 @@ import { AddHabitInline } from './components/AddHabitInline';
 import { HabitCard } from './components/HabitCard';
 import { AlarmRingingModal } from './components/AlarmRingingModal';
 import { CustomAudioModal } from './components/CustomAudioModal';
+import { PWAInstallBanner } from './components/PWAInstallBanner';
+import { useOnlineStatus } from './hooks/useOnlineStatus';
 
 const STORAGE_KEY = 'daily_routine_neomorphic_v1';
 
@@ -125,6 +127,7 @@ export default function App() {
   const [isAudioModalOpen, setIsAudioModalOpen] = useState(false);
   const [targetUploadTaskId, setTargetUploadTaskId] = useState<string | null>(null);
   const [notificationStatus, setNotificationStatus] = useState<NotificationPermission>('default');
+  const isOnline = useOnlineStatus();
 
   const tasksRef = useRef(tasks);
   tasksRef.current = tasks;
@@ -436,6 +439,17 @@ export default function App() {
             </button>
           </div>
         </header>
+
+        {/* In-App PWA Android & Mobile Install Banner */}
+        <PWAInstallBanner />
+
+        {/* Offline indicator if network is disconnected */}
+        {!isOnline && (
+          <aside aria-label="Offline Mode Status" className="w-full neu-inset rounded-2xl p-2.5 mb-4 text-xs flex items-center justify-center gap-2 text-amber-600 dark:text-amber-400 font-semibold">
+            <span className="w-2 h-2 rounded-full skeuo-led-amber animate-pulse" />
+            <span>Offline Mode Active · Your routine alarms run locally without internet</span>
+          </aside>
+        )}
 
         {/* Live Skeuomorphic Digital Clock & Upcoming Alarm */}
         <DigitalClock tasks={tasks} />
