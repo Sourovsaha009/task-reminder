@@ -1,0 +1,926 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Daily Routine & Habit Alarms</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Phosphor Icons for clean minimalist aesthetic -->
+  <script src="https://unpkg.com/@phosphor-icons/web"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            surface: '#12141A',
+            card: '#1B1F2A',
+            cardHover: '#232938',
+            accent: '#38BDF8',
+            accentMuted: '#0284C7',
+            success: '#10B981',
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+    }
+    input[type="time"]::-webkit-calendar-picker-indicator {
+      filter: invert(0.8);
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body class="bg-surface text-slate-100 min-h-screen flex justify-center selection:bg-sky-500/30">
+
+  <!-- Main Mobile Shell -->
+  <main class="w-full max-w-md min-h-screen flex flex-col px-5 py-6 pb-20 justify-between">
+    
+    <!-- Top Header -->
+    <header class="space-y-4">
+      <div class="flex items-center justify-between">
+        <div>
+          <p id="today-date" class="text-xs font-semibold uppercase tracking-wider text-slate-400">Loading...</p>
+          <h1 class="text-2xl font-bold tracking-tight text-white mt-0.5">Daily Routine</h1>
+        </div>
+        <!-- Notification Permission Button -->
+        <button id="btn-notify" class="p-2.5 rounded-full bg-card border border-slate-800 text-slate-400 hover:text-accent transition flex items-center justify-center active:scale-95" title="Notification Settings" aria-label="Toggle Reminders Permission">
+          <i id="notify-icon" class="ph ph-bell text-xl"></i>
+        </button>
+      </div>
+
+      <!-- Overall Day Progress Bar -->
+      <section class="bg-card/70 border border-slate-800/80 rounded-2xl p-4 shadow-sm">
+        <div class="flex items-center justify-between text-sm mb-2 font-medium">
+          <span class="text-slate-300" id="progress-summary">0 of 0 tasks completed</span>
+          <span id="overall-percentage" class="text-accent font-semibold">0%</span>
+        </div>
+        <div class="w-full bg-slate-800 h-2.5 rounded-full overflow-hidden">
+          <div id="overall-bar" class="h-full bg-accent transition-all duration-500 rounded-full w-0"></div>
+        </div>
+      </section>
+
+      <!-- Quick Add Task Form (Inline, no extra pages) -->
+      <form id="add-task-form" class="bg-card/90 border border-slate-800 rounded-2xl p-3 space-y-2.5 shadow-sm">
+        <div class="flex items-center gap-2">
+          <input 
+            id="new-task-name" 
+            type="text" 
+            placeholder="Task title (e.g. Water, Skincare)..." 
+            required 
+            autocomplete="off"
+            class="flex-1 bg-surface/70 text-slate-100 placeholder-slate-500 text-sm px-3 py-2 rounded-xl border border-slate-800 outline-none focus:border-accent transition min-w-0"
+          />
+          <input 
+            id="new-task-time" 
+            type="time" 
+            value="08:00"
+            title="Alarm time"
+            class="bg-surface/70 text-slate-200 text-xs px-2.5 py-2 rounded-xl border border-slate-800 outline-none focus:border-accent cursor-pointer transition w-[88px]"
+          />
+          <button 
+            type="submit" 
+            class="p-2.5 bg-accent hover:bg-sky-400 text-slate-950 font-bold rounded-xl active:scale-95 transition flex items-center justify-center flex-shrink-0"
+            title="Add Task"
+            aria-label="Add Task"
+          >
+            <i class="ph-bold ph-plus text-base"></i>
+          </button>
+        </div>
+
+        <!-- Optional Description & Sound / Alert Mode in Add Bar -->
+        <input 
+          id="new-task-desc" 
+          type="text" 
+          placeholder="Optional notes or details (e.g., 500ml glass, Chapter 3)..." 
+          autocomplete="off"
+          class="w-full bg-surface/70 text-slate-300 placeholder-slate-500 text-xs px-3 py-1.5 rounded-xl border border-slate-800 outline-none focus:border-accent transition"
+        />
+
+        <div class="flex items-center justify-between text-xs text-slate-400 pt-1 flex-wrap gap-2">
+          <!-- Sound Picker with Device Upload & Preview -->
+          <div class="flex items-center gap-1.5 flex-wrap">
+            <label for="new-task-sound" class="text-slate-400">Tone:</label>
+            <select id="new-task-sound" onchange="handleNewTaskSoundChange(this.value)" class="bg-surface border border-slate-800 rounded-lg px-2 py-1 text-slate-200 text-xs outline-none focus:border-accent cursor-pointer">
+              <optgroup label="Presets">
+                <option value="chime">Chime</option>
+                <option value="beep">Digital Beep</option>
+                <option value="bell">Bell Ring</option>
+                <option value="gong">Zen Gong</option>
+                <option value="pulse">Pulse Tone</option>
+              </optgroup>
+              <optgroup id="new-custom-sounds-group" label="Custom Device Audio">
+                <option value="__upload__">+ Upload from Device...</option>
+              </optgroup>
+            </select>
+            <input type="file" id="new-task-audio-file" accept="audio/*" class="hidden" onchange="handleNewAudioUpload(this)">
+            
+            <button type="button" onclick="previewCurrentSound(document.getElementById('new-task-sound').value)" class="p-1 text-accent hover:text-sky-300" title="Preview Sound">
+              <i id="new-preview-icon" class="ph-fill ph-play-circle text-base"></i>
+            </button>
+          </div>
+
+          <!-- Alert Mode Selection -->
+          <div class="flex items-center gap-2">
+            <label class="flex items-center gap-1 cursor-pointer select-none">
+              <input type="checkbox" id="new-task-mode-alarm" checked class="accent-sky-500 rounded">
+              <span class="text-slate-300">Alarm</span>
+            </label>
+            <label class="flex items-center gap-1 cursor-pointer select-none">
+              <input type="checkbox" id="new-task-mode-notify" checked class="accent-sky-500 rounded">
+              <span class="text-slate-300">Notify</span>
+            </label>
+          </div>
+        </div>
+      </form>
+    </header>
+
+    <!-- Task List -->
+    <section class="mt-4 space-y-3 flex-1" id="task-list" aria-label="Task List">
+      <!-- Task items rendered dynamically by JavaScript -->
+    </section>
+
+    <!-- Hidden global file input for per-task sound upload -->
+    <input type="file" id="task-custom-audio-input" accept="audio/*" class="hidden">
+
+    <!-- Minimal In-App Modal for Alarm Trigger -->
+    <div id="alarm-banner" class="fixed inset-x-4 bottom-6 mx-auto max-w-sm hidden bg-card border-2 border-accent/60 p-4 rounded-2xl shadow-2xl flex items-center justify-between z-50 animate-bounce">
+      <div class="flex items-center gap-3">
+        <div class="p-2.5 bg-accent/20 rounded-xl text-accent">
+          <i class="ph ph-alarm text-2xl"></i>
+        </div>
+        <div>
+          <p class="text-xs uppercase text-slate-400 font-semibold tracking-wide">Reminder Alert</p>
+          <p id="alarm-text" class="text-sm font-bold text-white">Time for your task!</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-1.5">
+        <button id="snooze-alarm-btn" class="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl font-medium text-xs active:scale-95 transition">
+          Snooze 5m
+        </button>
+        <button id="dismiss-alarm-btn" class="px-3 py-1.5 bg-accent hover:bg-sky-400 text-slate-900 rounded-xl font-bold text-xs active:scale-95 transition">
+          Dismiss
+        </button>
+      </div>
+    </div>
+
+    <!-- Status Message Footer -->
+    <footer class="mt-6 text-center text-xs text-slate-500 flex items-center justify-center gap-2">
+      <span class="inline-block w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+      <span>Alarms active while tab remains open</span>
+    </footer>
+  </main>
+
+  <script>
+    // --- 1. Initial State & Habit Definitions ---
+    const STORAGE_KEY_STATE = 'daily_habits_custom_v3';
+    const DB_NAME = 'DailyHabitAudioDB';
+    const DB_VERSION = 1;
+    const STORE_NAME = 'audio_files';
+
+    let customAudioLibrary = []; // Array of { id, name, blob }
+    let activeAudioPlayer = null; // HTMLAudioElement for custom audio preview/alarm
+    let ringingTaskId = null; // Stores task triggering active alarm
+
+    let appState = {
+      lastActiveDate: getTodayDateString(),
+      tasks: [
+        { 
+          id: 'task-1', 
+          title: 'Water Drinking', 
+          description: 'Drink at least 500ml cold or warm water',
+          time: '08:00', 
+          sound: 'chime',
+          useAlarm: true,
+          useNotification: true,
+          completed: false, 
+          streak: 0, 
+          notifiedToday: false 
+        },
+        { 
+          id: 'task-2', 
+          title: 'Skin Care', 
+          description: 'Cleanser, toner and SPF moisturizer',
+          time: '09:00', 
+          sound: 'bell',
+          useAlarm: true,
+          useNotification: false,
+          completed: false, 
+          streak: 0, 
+          notifiedToday: false 
+        },
+        { 
+          id: 'task-3', 
+          title: 'Exercise', 
+          description: 'Stretching and 30-min cardio/workout',
+          time: '17:30', 
+          sound: 'pulse',
+          useAlarm: true,
+          useNotification: true,
+          completed: false, 
+          streak: 0, 
+          notifiedToday: false 
+        },
+        { 
+          id: 'task-4', 
+          title: 'Reading', 
+          description: 'Read 15 pages of current book',
+          time: '21:00', 
+          sound: 'gong',
+          useAlarm: false,
+          useNotification: true,
+          completed: false, 
+          streak: 0, 
+          notifiedToday: false 
+        }
+      ]
+    };
+
+    // --- 2. IndexedDB for Persistent Custom Audio Uploads ---
+    function openAudioDB() {
+      return new Promise((resolve, reject) => {
+        const req = indexedDB.open(DB_NAME, DB_VERSION);
+        req.onupgradeneeded = (e) => {
+          const db = e.target.result;
+          if (!db.objectStoreNames.contains(STORE_NAME)) {
+            db.createObjectStore(STORE_NAME, { keyPath: 'id' });
+          }
+        };
+        req.onsuccess = () => resolve(req.result);
+        req.onerror = () => reject(req.error);
+      });
+    }
+
+    async function loadCustomAudios() {
+      try {
+        const db = await openAudioDB();
+        const tx = db.transaction(STORE_NAME, 'readonly');
+        const store = tx.objectStore(STORE_NAME);
+        const req = store.getAll();
+        return new Promise((resolve) => {
+          req.onsuccess = () => {
+            customAudioLibrary = req.result || [];
+            updateAudioSelects();
+            resolve(customAudioLibrary);
+          };
+          req.onerror = () => resolve([]);
+        });
+      } catch (e) {
+        console.warn("IndexedDB load error:", e);
+        return [];
+      }
+    }
+
+    async function saveCustomAudio(name, blob) {
+      const id = 'custom-' + Date.now();
+      const item = { id, name, blob };
+      try {
+        const db = await openAudioDB();
+        const tx = db.transaction(STORE_NAME, 'readwrite');
+        tx.objectStore(STORE_NAME).put(item);
+        await new Promise((res, rej) => {
+          tx.oncomplete = res;
+          tx.onerror = rej;
+        });
+        customAudioLibrary.push(item);
+        updateAudioSelects();
+        return id;
+      } catch (err) {
+        console.error("IndexedDB save error:", err);
+        return null;
+      }
+    }
+
+    // Helper: Returns custom audio blob by ID
+    function getCustomAudioItem(soundId) {
+      return customAudioLibrary.find(item => item.id === soundId);
+    }
+
+    // --- 3. Helper Functions ---
+    function getTodayDateString() {
+      const now = new Date();
+      return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+    }
+
+    function formatDateHeader() {
+      const options = { weekday: 'short', month: 'short', day: 'numeric' };
+      return new Date().toLocaleDateString(undefined, options);
+    }
+
+    // --- 4. Audio Playback (Web Audio + Custom Audio Element) ---
+    let audioCtx = null;
+
+    function getAudioContext() {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+      if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+      return audioCtx;
+    }
+
+    function stopActiveAudio() {
+      if (activeAudioPlayer) {
+        activeAudioPlayer.pause();
+        activeAudioPlayer.currentTime = 0;
+        activeAudioPlayer = null;
+      }
+    }
+
+    async function playSound(soundId = 'chime', loop = false) {
+      stopActiveAudio();
+
+      // Check if it's a custom uploaded audio file
+      if (soundId && soundId.startsWith('custom-')) {
+        const item = getCustomAudioItem(soundId);
+        if (item && item.blob) {
+          const url = URL.createObjectURL(item.blob);
+          const audio = new Audio(url);
+          audio.loop = loop;
+          audio.onended = () => {
+            URL.revokeObjectURL(url);
+            if (activeAudioPlayer === audio) activeAudioPlayer = null;
+          };
+          activeAudioPlayer = audio;
+          try {
+            await audio.play();
+          } catch (err) {
+            console.warn("Audio element play error:", err);
+          }
+          return;
+        }
+      }
+
+      // Presets using Web Audio API
+      try {
+        const ctx = getAudioContext();
+        const now = ctx.currentTime;
+
+        switch(soundId) {
+          case 'beep': {
+            [0, 0.15].forEach(delay => {
+              const osc = ctx.createOscillator();
+              const gain = ctx.createGain();
+              osc.type = 'square';
+              osc.frequency.setValueAtTime(1046.5, now + delay);
+              gain.gain.setValueAtTime(0.12, now + delay);
+              gain.gain.exponentialRampToValueAtTime(0.001, now + delay + 0.09);
+              osc.connect(gain);
+              gain.connect(ctx.destination);
+              osc.start(now + delay);
+              osc.stop(now + delay + 0.1);
+            });
+            break;
+          }
+          case 'bell': {
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(1318.51, now);
+            gain.gain.setValueAtTime(0.3, now);
+            gain.gain.exponentialRampToValueAtTime(0.0001, now + 1.2);
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.start(now);
+            osc.stop(now + 1.25);
+            break;
+          }
+          case 'gong': {
+            [146.83, 220.0, 329.63].forEach((f) => {
+              const osc = ctx.createOscillator();
+              const gain = ctx.createGain();
+              osc.type = 'triangle';
+              osc.frequency.setValueAtTime(f, now);
+              gain.gain.setValueAtTime(0.2, now);
+              gain.gain.exponentialRampToValueAtTime(0.0001, now + 1.8);
+              osc.connect(gain);
+              gain.connect(ctx.destination);
+              osc.start(now);
+              osc.stop(now + 1.9);
+            });
+            break;
+          }
+          case 'pulse': {
+            [523.25, 659.25, 783.99].forEach((freq, i) => {
+              const osc = ctx.createOscillator();
+              const gain = ctx.createGain();
+              osc.type = 'sawtooth';
+              osc.frequency.setValueAtTime(freq, now + i * 0.1);
+              gain.gain.setValueAtTime(0.08, now + i * 0.1);
+              gain.gain.exponentialRampToValueAtTime(0.0001, now + i * 0.1 + 0.18);
+              osc.connect(gain);
+              gain.connect(ctx.destination);
+              osc.start(now + i * 0.1);
+              osc.stop(now + i * 0.1 + 0.2);
+            });
+            break;
+          }
+          case 'chime':
+          default: {
+            [587.33, 880.00, 1174.66].forEach((freq, idx) => {
+              const osc = ctx.createOscillator();
+              const gain = ctx.createGain();
+              osc.type = 'sine';
+              osc.frequency.setValueAtTime(freq, now + idx * 0.12);
+              gain.gain.setValueAtTime(0, now + idx * 0.12);
+              gain.gain.linearRampToValueAtTime(0.25, now + idx * 0.12 + 0.04);
+              gain.gain.exponentialRampToValueAtTime(0.0001, now + idx * 0.12 + 0.7);
+              osc.connect(gain);
+              gain.connect(ctx.destination);
+              osc.start(now + idx * 0.12);
+              osc.stop(now + idx * 0.12 + 0.75);
+            });
+            break;
+          }
+        }
+      } catch (e) {
+        console.warn("Audio playback error:", e);
+      }
+    }
+
+    let isPreviewing = false;
+    window.previewCurrentSound = function(soundVal) {
+      if (isPreviewing) {
+        stopActiveAudio();
+        isPreviewing = false;
+        return;
+      }
+      isPreviewing = true;
+      playSound(soundVal);
+      setTimeout(() => { isPreviewing = false; }, 2000);
+    };
+
+    // Update custom sound options in the new task form select
+    function updateAudioSelects() {
+      const group = document.getElementById('new-custom-sounds-group');
+      if (group) {
+        let html = '';
+        customAudioLibrary.forEach(item => {
+          html += `<option value="${item.id}">📁 ${escapeHTML(item.name)}</option>`;
+        });
+        html += `<option value="__upload__">+ Upload from Device...</option>`;
+        group.innerHTML = html;
+      }
+    }
+
+    // Handlers for adding new audio from form
+    window.handleNewTaskSoundChange = function(val) {
+      if (val === '__upload__') {
+        document.getElementById('new-task-audio-file').click();
+      }
+    };
+
+    window.handleNewAudioUpload = async function(input) {
+      if (input.files && input.files[0]) {
+        const file = input.files[0];
+        const fileName = file.name.replace(/\.[^/.]+$/, "");
+        const id = await saveCustomAudio(fileName, file);
+        if (id) {
+          const select = document.getElementById('new-task-sound');
+          select.value = id;
+          playSound(id);
+        }
+      }
+      input.value = '';
+    };
+
+    // --- 5. Storage & State Management ---
+    function loadState() {
+      const saved = localStorage.getItem(STORAGE_KEY_STATE);
+      const today = getTodayDateString();
+
+      if (saved) {
+        try {
+          appState = JSON.parse(saved);
+        } catch (e) {
+          console.error("Error loading saved habits:", e);
+        }
+      }
+
+      // Check day-rollover
+      if (appState.lastActiveDate !== today) {
+        const yesterday = new Date();
+        yesterday.setDate(yesterday.getDate() - 1);
+        const yestStr = `${yesterday.getFullYear()}-${String(yesterday.getMonth() + 1).padStart(2, '0')}-${String(yesterday.getDate()).padStart(2, '0')}`;
+
+        appState.tasks.forEach(task => {
+          if (appState.lastActiveDate !== yestStr || !task.completed) {
+            task.streak = 0;
+          }
+          task.completed = false;
+          task.notifiedToday = false;
+        });
+
+        appState.lastActiveDate = today;
+        saveState();
+      }
+    }
+
+    function saveState() {
+      localStorage.setItem(STORAGE_KEY_STATE, JSON.stringify(appState));
+    }
+
+    // --- 6. Render UI ---
+    function renderTasks() {
+      const container = document.getElementById('task-list');
+      container.innerHTML = '';
+
+      if (appState.tasks.length === 0) {
+        container.innerHTML = `
+          <div class="text-center py-12 text-slate-500 space-y-2">
+            <i class="ph ph-calendar-plus text-4xl text-slate-600"></i>
+            <p class="text-sm">No tasks added yet.<br>Type a habit name above to get started!</p>
+          </div>
+        `;
+        document.getElementById('progress-summary').textContent = `0 of 0 tasks completed`;
+        document.getElementById('overall-percentage').textContent = `0%`;
+        document.getElementById('overall-bar').style.width = `0%`;
+        return;
+      }
+
+      let completedCount = 0;
+
+      appState.tasks.forEach(task => {
+        if (task.completed) completedCount++;
+
+        const card = document.createElement('div');
+        card.className = `p-3.5 rounded-2xl border transition-all duration-200 ${
+          task.completed 
+            ? 'bg-card/40 border-slate-800/50 opacity-90' 
+            : 'bg-card border-slate-800 hover:border-slate-700'
+        }`;
+
+        // Build Sound Options (Presets + Custom Uploaded)
+        const presets = ['chime', 'beep', 'bell', 'gong', 'pulse'];
+        let presetOptions = presets.map(snd => 
+          `<option value="${snd}" ${task.sound === snd ? 'selected' : ''}>${snd.charAt(0).toUpperCase() + snd.slice(1)}</option>`
+        ).join('');
+
+        let customOptions = customAudioLibrary.map(item => 
+          `<option value="${item.id}" ${task.sound === item.id ? 'selected' : ''}>📁 ${escapeHTML(item.name)}</option>`
+        ).join('');
+
+        card.innerHTML = `
+          <div class="flex items-start justify-between gap-3">
+            <!-- Completion Button & Task Info -->
+            <div class="flex items-start gap-3 min-w-0 flex-1">
+              <button 
+                onclick="toggleTask('${task.id}')"
+                class="w-9 h-9 mt-0.5 flex-shrink-0 rounded-xl flex items-center justify-center border transition-all active:scale-90 ${
+                  task.completed 
+                    ? 'bg-emerald-500 border-emerald-400 text-slate-950 font-bold' 
+                    : 'bg-surface border-slate-700 text-transparent hover:border-slate-500'
+                }"
+                aria-label="Toggle completion for ${task.title}"
+              >
+                <i class="ph-bold ph-check text-lg"></i>
+              </button>
+              
+              <div class="min-w-0 flex-1">
+                <p class="text-sm font-semibold truncate ${task.completed ? 'line-through text-slate-400' : 'text-slate-100'}">
+                  ${escapeHTML(task.title)}
+                </p>
+
+                <!-- Optional Task Description -->
+                ${task.description ? `
+                  <p class="text-xs text-slate-400 mt-0.5 leading-relaxed line-clamp-2">
+                    ${escapeHTML(task.description)}
+                  </p>
+                ` : ''}
+
+                <div class="flex items-center gap-2 mt-1.5 text-xs">
+                  <span class="text-amber-400 font-medium flex items-center gap-1">
+                    <i class="ph-fill ph-fire text-amber-400"></i> ${task.streak || 0}d streak
+                  </span>
+                  <span class="text-slate-600">•</span>
+                  <span class="text-slate-400 text-[11px]">${task.time || '08:00'}</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Controls: Time & Delete -->
+            <div class="flex items-center gap-1.5 flex-shrink-0">
+              <input 
+                type="time" 
+                value="${task.time || '08:00'}" 
+                onchange="updateTime('${task.id}', this.value)"
+                class="bg-surface text-xs font-medium text-slate-200 border border-slate-800 rounded-xl px-2 py-1.5 outline-none w-[72px] cursor-pointer"
+                aria-label="Alarm time for ${task.title}"
+              />
+
+              <button 
+                onclick="deleteTask('${task.id}')" 
+                class="p-2 text-slate-500 hover:text-rose-400 rounded-lg active:scale-90 transition"
+                title="Delete task"
+                aria-label="Delete task"
+              >
+                <i class="ph ph-trash text-base"></i>
+              </button>
+            </div>
+          </div>
+
+          <!-- Bottom Configuration Bar: Sound & Alert Mode -->
+          <div class="mt-3 pt-2.5 border-t border-slate-800/80 flex items-center justify-between text-xs text-slate-400 gap-2 flex-wrap">
+            <!-- Custom Sound Selection & Preview -->
+            <div class="flex items-center gap-1.5 max-w-[210px]">
+              <span class="text-slate-400 text-[11px]">Tone:</span>
+              <select 
+                onchange="handleTaskSoundSelect('${task.id}', this.value)" 
+                class="bg-surface border border-slate-800 rounded-lg px-2 py-1 text-slate-300 text-xs outline-none focus:border-accent cursor-pointer max-w-[130px] truncate"
+              >
+                <optgroup label="Presets">
+                  ${presetOptions}
+                </optgroup>
+                <optgroup label="Custom Sounds">
+                  ${customOptions}
+                  <option value="__upload__">+ Upload device audio...</option>
+                </optgroup>
+              </select>
+              <button 
+                type="button" 
+                onclick="previewCurrentSound('${task.sound || 'chime'}')" 
+                class="p-1 text-accent hover:text-sky-300 transition" 
+                title="Preview sound"
+              >
+                <i class="ph-fill ph-play-circle text-base"></i>
+              </button>
+            </div>
+
+            <!-- Set as Alarm vs Notification Switches -->
+            <div class="flex items-center gap-2">
+              <button 
+                onclick="toggleAlertMode('${task.id}', 'useAlarm')" 
+                class="flex items-center gap-1 px-2 py-1 rounded-lg border text-xs transition active:scale-95 ${
+                  task.useAlarm 
+                    ? 'border-accent/40 bg-accent/15 text-accent font-medium' 
+                    : 'border-slate-800 text-slate-500 hover:text-slate-400'
+                }"
+                title="Toggle Alarm (Audio Chime & Modal)"
+              >
+                <i class="ph ${task.useAlarm ? 'ph-alarm' : 'ph-bell-slash'} text-sm"></i>
+                <span>Alarm</span>
+              </button>
+
+              <button 
+                onclick="toggleAlertMode('${task.id}', 'useNotification')" 
+                class="flex items-center gap-1 px-2 py-1 rounded-lg border text-xs transition active:scale-95 ${
+                  task.useNotification 
+                    ? 'border-emerald-500/40 bg-emerald-500/15 text-emerald-400 font-medium' 
+                    : 'border-slate-800 text-slate-500 hover:text-slate-400'
+                }"
+                title="Toggle Push Notification"
+              >
+                <i class="ph ph-chat-circle-dots text-sm"></i>
+                <span>Notify</span>
+              </button>
+            </div>
+          </div>
+        `;
+        container.appendChild(card);
+      });
+
+      // Update Progress Summary
+      const total = appState.tasks.length;
+      const pct = total === 0 ? 0 : Math.round((completedCount / total) * 100);
+      document.getElementById('progress-summary').textContent = `${completedCount} of ${total} tasks completed`;
+      document.getElementById('overall-percentage').textContent = `${pct}%`;
+      document.getElementById('overall-bar').style.width = `${pct}%`;
+    }
+
+    function escapeHTML(str) {
+      if (!str) return '';
+      return str.replace(/[&<>'"]/g, 
+        tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag] || tag)
+      );
+    }
+
+    // --- 7. Task Actions ---
+    window.toggleTask = function(id) {
+      const task = appState.tasks.find(t => t.id === id);
+      if (!task) return;
+
+      task.completed = !task.completed;
+      if (task.completed) {
+        task.streak = (task.streak || 0) + 1;
+        playSound(task.sound || 'chime');
+      } else {
+        task.streak = Math.max(0, (task.streak || 1) - 1);
+      }
+      saveState();
+      renderTasks();
+    };
+
+    window.updateTime = function(id, newTime) {
+      const task = appState.tasks.find(t => t.id === id);
+      if (task) {
+        task.time = newTime;
+        task.notifiedToday = false;
+        saveState();
+      }
+    };
+
+    let targetUploadTaskId = null;
+    window.handleTaskSoundSelect = function(taskId, val) {
+      if (val === '__upload__') {
+        targetUploadTaskId = taskId;
+        const input = document.getElementById('task-custom-audio-input');
+        input.click();
+      } else {
+        const task = appState.tasks.find(t => t.id === taskId);
+        if (task) {
+          task.sound = val;
+          saveState();
+          playSound(val);
+          renderTasks();
+        }
+      }
+    };
+
+    document.getElementById('task-custom-audio-input').addEventListener('change', async function() {
+      if (this.files && this.files[0] && targetUploadTaskId) {
+        const file = this.files[0];
+        const fileName = file.name.replace(/\.[^/.]+$/, "");
+        const newId = await saveCustomAudio(fileName, file);
+        if (newId) {
+          const task = appState.tasks.find(t => t.id === targetUploadTaskId);
+          if (task) {
+            task.sound = newId;
+            saveState();
+            playSound(newId);
+          }
+        }
+      }
+      this.value = '';
+      targetUploadTaskId = null;
+      renderTasks();
+    });
+
+    window.toggleAlertMode = function(id, modeKey) {
+      const task = appState.tasks.find(t => t.id === id);
+      if (task) {
+        task[modeKey] = !task[modeKey];
+        saveState();
+        renderTasks();
+      }
+    };
+
+    window.deleteTask = function(id) {
+      appState.tasks = appState.tasks.filter(t => t.id !== id);
+      saveState();
+      renderTasks();
+    };
+
+    // Form submission for adding custom tasks
+    document.getElementById('add-task-form').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const nameInput = document.getElementById('new-task-name');
+      const descInput = document.getElementById('new-task-desc');
+      const timeInput = document.getElementById('new-task-time');
+      const soundInput = document.getElementById('new-task-sound');
+      const alarmCheck = document.getElementById('new-task-mode-alarm');
+      const notifyCheck = document.getElementById('new-task-mode-notify');
+
+      const title = nameInput.value.trim();
+      if (!title) return;
+
+      const chosenSound = soundInput.value === '__upload__' ? 'chime' : soundInput.value;
+
+      const newTask = {
+        id: 'task-' + Date.now(),
+        title: title,
+        description: descInput.value.trim(),
+        time: timeInput.value || '08:00',
+        sound: chosenSound,
+        useAlarm: alarmCheck.checked,
+        useNotification: notifyCheck.checked,
+        completed: false,
+        streak: 0,
+        notifiedToday: false
+      };
+
+      appState.tasks.push(newTask);
+      saveState();
+      renderTasks();
+
+      nameInput.value = '';
+      descInput.value = '';
+    });
+
+    // --- 8. Alarm & Notification Loop ---
+    function checkAlarms() {
+      const now = new Date();
+      const currentHours = String(now.getHours()).padStart(2, '0');
+      const currentMinutes = String(now.getMinutes()).padStart(2, '0');
+      const currentTimeString = `${currentHours}:${currentMinutes}`;
+
+      appState.tasks.forEach(task => {
+        const hasAlertActive = task.useAlarm || task.useNotification;
+        if (hasAlertActive && task.time === currentTimeString && !task.notifiedToday && !task.completed) {
+          triggerAlert(task);
+          task.notifiedToday = true;
+          saveState();
+        }
+      });
+    }
+
+    function triggerAlert(task) {
+      ringingTaskId = task.id;
+
+      // 1. If Alarm is selected, play custom or preset sound and display in-app banner
+      if (task.useAlarm) {
+        playSound(task.sound || 'chime', true);
+        const banner = document.getElementById('alarm-banner');
+        const text = document.getElementById('alarm-text');
+        text.textContent = `Time for ${task.title}!`;
+        banner.classList.remove('hidden');
+      }
+
+      // 2. If Notification is selected, trigger system web push notification
+      if (task.useNotification && "Notification" in window && Notification.permission === "granted") {
+        try {
+          new Notification(`Reminder: ${task.title}`, {
+            body: task.description ? `${task.description} (Streak: ${task.streak || 0}d)` : `Time to complete your habit!`,
+            icon: 'data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⏰</text></svg>'
+          });
+        } catch (e) {
+          console.warn("Notification error:", e);
+        }
+      }
+    }
+
+    // Dismiss alarm banner & stop ringing sound
+    document.getElementById('dismiss-alarm-btn').addEventListener('click', () => {
+      stopActiveAudio();
+      document.getElementById('alarm-banner').classList.add('hidden');
+      ringingTaskId = null;
+    });
+
+    // Snooze alarm by 5 minutes
+    document.getElementById('snooze-alarm-btn').addEventListener('click', () => {
+      stopActiveAudio();
+      document.getElementById('alarm-banner').classList.add('hidden');
+      if (ringingTaskId) {
+        const task = appState.tasks.find(t => t.id === ringingTaskId);
+        if (task) {
+          const now = new Date();
+          now.setMinutes(now.getMinutes() + 5);
+          const hh = String(now.getHours()).padStart(2, '0');
+          const mm = String(now.getMinutes()).padStart(2, '0');
+          task.time = `${hh}:${mm}`;
+          task.notifiedToday = false;
+          saveState();
+          renderTasks();
+        }
+      }
+      ringingTaskId = null;
+    });
+
+    // Request Notifications
+    const notifyBtn = document.getElementById('btn-notify');
+    const notifyIcon = document.getElementById('notify-icon');
+
+    function updateNotifyIcon() {
+      if (!("Notification" in window)) {
+        notifyBtn.style.display = 'none';
+        return;
+      }
+      if (Notification.permission === "granted") {
+        notifyIcon.className = "ph-fill ph-bell-simple text-accent text-xl";
+      } else {
+        notifyIcon.className = "ph ph-bell text-slate-400 text-xl";
+      }
+    }
+
+    notifyBtn.addEventListener('click', async () => {
+      getAudioContext();
+
+      if ("Notification" in window) {
+        const perm = await Notification.requestPermission();
+        updateNotifyIcon();
+        if (perm === 'granted') {
+          playSound('chime');
+        }
+      }
+    });
+
+    // --- 9. App Initialization ---
+    window.onload = async function() {
+      document.getElementById('today-date').textContent = formatDateHeader();
+      loadState();
+      await loadCustomAudios();
+      renderTasks();
+      updateNotifyIcon();
+
+      // Check alarms every 10 seconds
+      setInterval(checkAlarms, 10000);
+    };
+  </script>
+</body>
+</html>

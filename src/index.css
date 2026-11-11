@@ -1,0 +1,244 @@
+@import "tailwindcss";
+@custom-variant dark (&:where(.dark, .dark *));
+
+@layer base {
+  :root {
+    --bg-main: #e2e8f0;
+    --neu-surface: #e4ebf5;
+    --neu-light: #ffffff;
+    --neu-dark: #b8c5d6;
+    --neu-dark-deep: #a3b2c5;
+    --neu-accent: #0284c7;
+    --neu-accent-glow: rgba(2, 132, 199, 0.35);
+  }
+
+  .dark {
+    --bg-main: #14161c;
+    --neu-surface: #181b22;
+    --neu-light: #242934;
+    --neu-dark: #0f1116;
+    --neu-dark-deep: #0a0b0e;
+    --neu-accent: #38bdf8;
+    --neu-accent-glow: rgba(56, 189, 248, 0.3);
+  }
+
+  body {
+    font-family: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background-color: var(--neu-surface);
+    color: #1e293b;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .dark body {
+    color: #f1f5f9;
+  }
+
+  .font-digital {
+    font-family: 'JetBrains Mono', monospace;
+  }
+}
+
+/* ==========================================================================
+   NEUMORPHISM (SOFT UI) & SKEUOMORPHIC PHYSICAL TEXTURES
+   ========================================================================== */
+
+/* Raised Surface / Card */
+.neu-raised {
+  background: var(--neu-surface);
+  box-shadow: 8px 8px 18px var(--neu-dark), -8px -8px 18px var(--neu-light);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+}
+.dark .neu-raised {
+  background: var(--neu-surface);
+  box-shadow: 7px 7px 16px var(--neu-dark-deep), -5px -5px 14px var(--neu-light);
+  border: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+/* Subtle Raised Surface */
+.neu-raised-sm {
+  background: var(--neu-surface);
+  box-shadow: 4px 4px 10px var(--neu-dark), -4px -4px 10px var(--neu-light);
+  border: 1px solid rgba(255, 255, 255, 0.35);
+}
+.dark .neu-raised-sm {
+  background: var(--neu-surface);
+  box-shadow: 4px 4px 10px var(--neu-dark-deep), -3px -3px 8px var(--neu-light);
+  border: 1px solid rgba(255, 255, 255, 0.03);
+}
+
+/* Recessed Inset (Grooves, Input fields, Depressed buttons) */
+.neu-inset {
+  background: var(--neu-surface);
+  box-shadow: inset 3px 3px 6px var(--neu-dark), inset -3px -3px 6px var(--neu-light);
+  border: 1px solid rgba(0, 0, 0, 0.03);
+}
+.dark .neu-inset {
+  background: var(--neu-surface);
+  box-shadow: inset 4px 4px 8px var(--neu-dark-deep), inset -3px -3px 6px var(--neu-light);
+  border: 1px solid rgba(255, 255, 255, 0.02);
+}
+
+/* Deep Recessed Inset (e.g. LCD display screen or deep well) */
+.neu-inset-deep {
+  background: #dbe4ef;
+  box-shadow: inset 4px 4px 9px var(--neu-dark-deep), inset -4px -4px 9px var(--neu-light);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+}
+.dark .neu-inset-deep {
+  background: #111318;
+  box-shadow: inset 5px 5px 10px #090a0d, inset -3px -3px 8px rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(0, 0, 0, 0.6);
+}
+
+/* Convex / Extruded Pill or Button (Puffy Soft Button) */
+.neu-convex {
+  background: linear-gradient(145deg, #f0f6fd, #d8e2ee);
+  box-shadow: 5px 5px 12px var(--neu-dark), -5px -5px 12px var(--neu-light);
+}
+.dark .neu-convex {
+  background: linear-gradient(145deg, #20242d, #14171d);
+  box-shadow: 5px 5px 12px var(--neu-dark-deep), -4px -4px 10px var(--neu-light);
+}
+
+/* Concave / Dish Surface */
+.neu-concave {
+  background: linear-gradient(145deg, #d8e2ee, #f0f6fd);
+  box-shadow: 5px 5px 12px var(--neu-dark), -5px -5px 12px var(--neu-light);
+}
+.dark .neu-concave {
+  background: linear-gradient(145deg, #14171d, #20242d);
+  box-shadow: 5px 5px 12px var(--neu-dark-deep), -4px -4px 10px var(--neu-light);
+}
+
+/* Tactile Push Button */
+.neu-btn {
+  background: var(--neu-surface);
+  box-shadow: 5px 5px 12px var(--neu-dark), -5px -5px 12px var(--neu-light);
+  transition: all 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+  position: relative;
+}
+.neu-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 6px 6px 14px var(--neu-dark), -6px -6px 14px var(--neu-light);
+}
+.neu-btn:active, .neu-btn-active {
+  transform: translateY(1px);
+  box-shadow: inset 3px 3px 6px var(--neu-dark), inset -3px -3px 6px var(--neu-light) !important;
+}
+.dark .neu-btn {
+  box-shadow: 5px 5px 12px var(--neu-dark-deep), -4px -4px 10px var(--neu-light);
+}
+.dark .neu-btn:hover {
+  box-shadow: 6px 6px 14px var(--neu-dark-deep), -5px -5px 12px var(--neu-light);
+}
+.dark .neu-btn:active, .dark .neu-btn-active {
+  box-shadow: inset 3px 3px 6px var(--neu-dark-deep), inset -3px -3px 6px var(--neu-light) !important;
+}
+
+/* Primary Accent Tactile Button */
+.neu-btn-accent {
+  background: linear-gradient(145deg, #0ea5e9, #0284c7);
+  box-shadow: 5px 5px 12px var(--neu-dark), -5px -5px 12px var(--neu-light), 0 0 16px rgba(2, 132, 199, 0.4);
+  color: #ffffff;
+  transition: all 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.neu-btn-accent:hover {
+  background: linear-gradient(145deg, #38bdf8, #0369a1);
+  transform: translateY(-1px);
+}
+.neu-btn-accent:active {
+  transform: translateY(1px);
+  box-shadow: inset 3px 3px 6px #0369a1, inset -3px -3px 6px #38bdf8 !important;
+}
+.dark .neu-btn-accent {
+  background: linear-gradient(145deg, #0284c7, #0369a1);
+  box-shadow: 5px 5px 12px var(--neu-dark-deep), -4px -4px 10px var(--neu-light), 0 0 16px rgba(56, 189, 248, 0.25);
+}
+
+/* Skeuomorphic Metallic Dial / Ring */
+.skeuo-dial-rim {
+  border-radius: 9999px;
+  background: linear-gradient(145deg, #f5f8fc, #c5d2e0);
+  box-shadow: 6px 6px 14px var(--neu-dark), -6px -6px 14px var(--neu-light);
+  padding: 4px;
+}
+.dark .skeuo-dial-rim {
+  background: linear-gradient(145deg, #282e3b, #12141a);
+  box-shadow: 6px 6px 14px var(--neu-dark-deep), -5px -5px 12px var(--neu-light);
+}
+
+/* Skeuomorphic LED Glow */
+.skeuo-led-green {
+  background: #10b981;
+  box-shadow: 0 0 8px #10b981, inset 0 1px 2px #d1fae5;
+}
+.skeuo-led-amber {
+  background: #f59e0b;
+  box-shadow: 0 0 8px #f59e0b, inset 0 1px 2px #fef3c7;
+}
+.skeuo-led-blue {
+  background: #0ea5e9;
+  box-shadow: 0 0 8px #0ea5e9, inset 0 1px 2px #e0f2fe;
+}
+.skeuo-led-off {
+  background: #94a3b8;
+  opacity: 0.35;
+  box-shadow: inset 1px 1px 2px rgba(0, 0, 0, 0.4);
+}
+.dark .skeuo-led-off {
+  background: #334155;
+  opacity: 0.45;
+}
+
+/* Skeuomorphic Physical Rocker Switch */
+.neu-rocker-track {
+  background: #d4dde8;
+  box-shadow: inset 3px 3px 6px var(--neu-dark), inset -2px -2px 5px var(--neu-light);
+}
+.dark .neu-rocker-track {
+  background: #12141a;
+  box-shadow: inset 3px 3px 6px #08090c, inset -2px -2px 4px rgba(255, 255, 255, 0.05);
+}
+
+.neu-rocker-thumb {
+  background: linear-gradient(180deg, #fefefe 0%, #d8e2ed 100%);
+  box-shadow: 2px 3px 6px rgba(0, 0, 0, 0.18), inset 0 1px 1px #ffffff;
+}
+.dark .neu-rocker-thumb {
+  background: linear-gradient(180deg, #2b313d 0%, #1a1d25 100%);
+  box-shadow: 2px 3px 6px rgba(0, 0, 0, 0.5), inset 0 1px 1px rgba(255, 255, 255, 0.12);
+}
+
+/* Alarm Bell Vibration Animation */
+@keyframes bellRing {
+  0% { transform: rotate(0); }
+  10% { transform: rotate(14deg); }
+  20% { transform: rotate(-14deg); }
+  30% { transform: rotate(10deg); }
+  40% { transform: rotate(-10deg); }
+  50% { transform: rotate(6deg); }
+  60% { transform: rotate(-6deg); }
+  70% { transform: rotate(2deg); }
+  80% { transform: rotate(-2deg); }
+  100% { transform: rotate(0); }
+}
+
+.animate-bell-ring {
+  animation: bellRing 0.8s cubic-bezier(0.36, 0.07, 0.19, 0.97) infinite;
+  transform-origin: top center;
+}
+
+/* Custom Time input style to match soft neumorphic theme */
+input[type="time"]::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+  opacity: 0.6;
+  filter: drop-shadow(1px 1px 0px rgba(255,255,255,0.7));
+  transition: opacity 0.15s;
+}
+input[type="time"]::-webkit-calendar-picker-indicator:hover {
+  opacity: 1;
+}
+.dark input[type="time"]::-webkit-calendar-picker-indicator {
+  filter: invert(0.85);
+}

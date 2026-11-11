@@ -1,0 +1,6 @@
+{
+  "name": "Daily Routine - Neomorphic Habit & Alarm Tracker",
+  "description": "A tactile Soft UI and skeuomorphic daily routine alarm and habit tracker with realistic physical controls, audio alerts, and streak tracking.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
